@@ -1,0 +1,81 @@
+name: Temporary bot smoke test
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_minutes:
+        description: Maximum time to keep the bot process running
+        required: true
+        default: "5"
+        type: choice
+        options:
+          - "5"
+          - "10"
+          - "15"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terafast-temporary-bot-test
+  cancel-in-progress: true
+
+jobs:
+  smoke-test:
+    name: Test bot startup (temporary runner)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      API_ID: ${{ secrets.API_ID }}
+      API_HASH: ${{ secrets.API_HASH }}
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      DATA_DIR: ${{ runner.temp }}/terafast-data
+      LOG_WEB_HOST: 127.0.0.1
+      LOG_WEB_PORT: "8080"
+      RUN_MINUTES: ${{ inputs.run_minutes }}
+    steps:
+      - name: Check required repository secrets
+        shell: bash
+        run: |
+          missing=()
+          for name in API_ID API_HASH BOT_TOKEN; do
+            if [[ -z "${!name}" ]]; then
+              missing+=("$name")
+            fi
+          done
+          if (( ${#missing[@]} )); then
+            printf 'Missing repository secrets: %s\n' "${missing[*]}" >&2
+            echo 'Add the rotated values under Settings → Secrets and variables → Actions.' >&2
+            exit 1
+          fi
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+
+      - name: Compile source
+        run: python -m compileall -q .
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Run bot for the selected smoke-test window
+        shell: bash
+        run: |
+          set +e
+          timeout --signal=INT --kill-after=15s "${RUN_MINUTES}m" python bot.py
+          status=$?
+          set -e
+          if [[ "$status" -eq 124 || "$status" -eq 130 || "$status" -eq 137 ]]; then
+            echo "Bot smoke test ended at the selected time limit."
+            exit 0
+          fi
+          exit "$status"
