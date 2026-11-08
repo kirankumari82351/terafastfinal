@@ -29,7 +29,7 @@ jobs:
       API_ID: ${{ secrets.API_ID }}
       API_HASH: ${{ secrets.API_HASH }}
       BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-      DATA_DIR: ${{ runner.temp }}/terafast-data
+      DATA_DIR: ./data
       LOG_WEB_HOST: 127.0.0.1
       LOG_WEB_PORT: "8080"
       RUN_MINUTES: ${{ inputs.run_minutes }}
