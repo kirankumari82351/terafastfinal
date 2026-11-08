@@ -129,6 +129,7 @@ dashboard.py            live log dashboard (unchanged)
 handlers/               common, targets, batch, login, direct, router
 services/               pipeline, batch_engine, auto_engine, userbot, progress
 utils/                  formatting, links, queue, telegram, async helpers
+tests/                  unit tests
 ```
 
 ## 7. Edge cases
