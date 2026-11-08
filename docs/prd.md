@@ -128,7 +128,7 @@ tgdl.py                 parallel Telegram downloader (unchanged)
 dashboard.py            live log dashboard (unchanged)
 handlers/               common, targets, batch, login, direct, router
 services/               pipeline, batch_engine, auto_engine, userbot, progress
-utils/                  formatting, links, queue, telegram, async helpers
+utils/                  formatting, links, queue, async helpers
 tests/                  unit tests
 ```
 
